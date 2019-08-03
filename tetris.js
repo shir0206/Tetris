@@ -7,7 +7,30 @@ const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 
 // Scale the size of the shapes
-context.scale(10, 10);
+context.scale(20, 20);
+
+context.fillStyle = "#FF0000";
+context.fillRect(20, 20, 150, 100);
+
+
+function arenaSweep() {
+let rowCount = 1;
+
+	outer: for (let y = arena.length - 1 ; y > 0; --y) {
+		for (let x = 0; x < arena[y].length; ++x) {
+			if (arena[y][x] === 0) {
+				continue outer;
+			}
+		}
+	const row = arena.splice(y, 1)[0].fill(0);
+	arena.unshift(row);
+	++y;
+
+	player.score += rowCount * 10;
+		rowCount *= 2;
+
+}
+}
 
 // Matrix shape T
 const matrix = [
@@ -57,64 +80,71 @@ function createMatrix(w, h) {
 	return matrix;
 }
 
+/**
+ * Create a piece
+ * @param {*} type Create the shape according to the recieving shape
+ */
 function createPiece(type){
 	if (type === 'T') {
 		return [
 			[1, 1, 1],
 			[0, 1, 0],
-			[0, 1, 0],
+			[0, 0, 0],
 		];
 	}
 
 	else if (type === 'O') {
 		return [
-			[1, 1],
-			[1, 1],
+			[2, 2],
+			[2, 2],
 		];
 	}
 
 	else if (type === 'L') {
 		return [
-			[0, 1, 0],
-			[0, 1, 0],
-			[0, 1, 1],
+			[0, 3, 0],
+			[0, 3, 0],
+			[0, 3, 3],
 		];
 	}
 
 	else if (type === 'J') {
 		return [
-			[0, 1, 0],
-			[0, 1, 0],
-			[1, 1, 0],
+			[0, 4, 0],
+			[0, 4, 0],
+			[4, 4, 0],
 		];
 	}
 
 	else if (type === 'I') {
 		return [
-			[0, 1, 0, 0],
-			[0, 1, 0, 0],
-			[0, 1, 0, 0],
-			[0, 1, 0, 0],
+			[0, 5, 0, 0],
+			[0, 5, 0, 0],
+			[0, 5, 0, 0],
+			[0, 5, 0, 0],
 		];
 	}
 
 	else if (type === 'S') {
 		return [
-			[0, 1, 1],
-			[1, 1, 0],
+			[0, 6, 6],
+			[6, 6, 0],
 			[0, 0, 0],
 		];
 	}
 
 	else if (type === 'Z') {
 		return [
-			[1, 1, 0],
-			[0, 1, 1],
+			[7, 7, 0],
+			[0, 7, 7],
 			[0, 0, 0],
 		];
 	}
 }
 
+/**
+ * Create a new random piece
+ */
 function playerReset() {
 
 	// Create new random piece
@@ -124,13 +154,16 @@ function playerReset() {
 	player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
 
 	//If piece touching the ceilling, reset the arena
-if (colide(arena, player)) {
-	arena.forEach(row => row.fill(0));
+	if (colide(arena, player)) {
+		arena.forEach(row => row.fill(0));
+		player.score = 0;
+		updateScore();
+	}
 }
 
-}
-
-// Draw the screen of the tetris
+/**
+ * Draw the screen of the tetris
+ */ 
 function draw() {	
 
 	// Paint the context
@@ -151,7 +184,7 @@ function drawMatrix(matrix, offset) {
 	matrix.forEach((row, y) => {
 		row.forEach((value, x) => {
 			if (value !== 0) {
-				context.fillStyle = 'red';
+				context.fillStyle = colors[value];
 				context.fillRect(x + offset.x,
 								 y + offset.y,
 								 1, 1);
@@ -181,25 +214,21 @@ function merge(arena, player){
  */
 function playerDrop() {
 
-	//  Move shape down
+	//  Move piece down
 	player.pos.y++;
 
 	// If there is collision, merge the arena and the player position
 	if (colide(arena, player)) {
 		player.pos.y--;
-		//player.pos.y++;
 
 		// merge the player & arena
 		merge(arena, player);
 
 		// When the piece touch the button, start all over again
-		//player.pos.y = 0;
-
 		playerReset();
-
+		arenaSweep();
+		updateScore();
 	}
-	
-
 	dropCounter = 0;
 }
 
@@ -223,7 +252,6 @@ function playerRotate(dir) {
 	 	offset = -(offset + (offset > 0 ? 1 : -1));
 	
 	 	if (offset > player.matrix[0].length) {
-	// 		rotate(player.matrix, -dir);
 	 		player.pos.x = pos;
 	 		return;
 	 	}	
@@ -257,8 +285,6 @@ let dropCounter = 0;
 
 // Every 1 second (1000 milisecond) drop a piece/shape
 let dropInterval = 1000;
-
-
 let lastTime = 0;
 
 /**
@@ -278,21 +304,40 @@ function update(time = 0) {
 	requestAnimationFrame(update);
 }
 
+/**
+ * Update the user score
+ */
+function updateScore(){
+	document.getElementById('score').innerText = player.score;
+}
+
 // Matrix that represents all the shapes that already fell from above and placed in the board.
-const arena = createMatrix(20, 30)
+const arena = createMatrix(12, 20)
 
 // Draw table in the console that represents the arena 
 console.log(arena);
 console.table(arena);
+
+const colors = [
+	null, 
+	"#FBECC4",
+	"#7FE5E7",
+	"#62BEC3",
+	"#F1CAC2",
+	"#F1CAC2",
+	"#A3C9CF", 
+	"#C69EC0",
+]
 
 /**
  * Type of shape and where it falls from
  */
 const player = {
 	// The start point of the board where the piece is falling from
-	pos: {x: 1, y: 0},
+	pos: {x: 0, y: 0},
 	// The type of the shape
-	matrix: createPiece('T'),
+	matrix: null,
+	score: 0,
 }
 
 /**
@@ -305,28 +350,24 @@ document.addEventListener('keydown', event => { //Listen to keyboard clicks
 	// If left arrow on keyboard is pressed, move shape left
 	if (event.keyCode === 37) { 
 		playerMove(-1);
-		//player.pos.x--;
 	}
 
 	// If right arrow on keyboard is pressed, move shape right
 	else if (event.keyCode === 39) {
 		playerMove(1);
-		//player.pos.x++;
 	}
 
 		// If down arrow on keyboard is pressed, move shape down
-	else if (event.keyCode === 40) { //Down arrow on keyboard
-		//player.pos.y++;
-		//dropCounter = 0;
+	else if (event.keyCode === 40) {
+
 		playerDrop();
 	}
-	//else if (event.keyCode == 38) { //Up arrow on keyboard
-	//	player.pos.y--;
-	//}
 
 	else if(event.keyCode === 38) {
 		playerRotate(1);
 	}
 });
 
+playerReset();
+updateScore();
 update();
