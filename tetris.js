@@ -1,5 +1,3 @@
-//32:20
-
 // Accsess to canvas
 const canvas = document.getElementById('tetris');
 
@@ -9,27 +7,27 @@ const context = canvas.getContext('2d');
 // Scale the size of the shapes
 context.scale(20, 20);
 
-context.fillStyle = "#FF0000";
+context.fillStyle = "#FFFFFF";
 context.fillRect(20, 20, 150, 100);
 
 
 function arenaSweep() {
-let rowCount = 1;
+	let rowCount = 1;
 
-	outer: for (let y = arena.length - 1 ; y > 0; --y) {
+	outer: for (let y = arena.length - 1; y > 0; --y) {
 		for (let x = 0; x < arena[y].length; ++x) {
 			if (arena[y][x] === 0) {
 				continue outer;
 			}
 		}
-	const row = arena.splice(y, 1)[0].fill(0);
-	arena.unshift(row);
-	++y;
+		const row = arena.splice(y, 1)[0].fill(0);
+		arena.unshift(row);
+		++y;
 
-	player.score += rowCount * 10;
+		player.score += rowCount * 10;
 		rowCount *= 2;
 
-}
+	}
 }
 
 // Matrix shape T
@@ -54,16 +52,16 @@ function colide(arena, player) {
 	for (let y = 0; y < m.length; ++y) {
 		for (let x = 0; x < m[y].length; ++x) {
 
-//Check if the arena has row and col
+			//Check if the arena has row and col
 
 			if ((m[y][x]) !== 0 &&
 				(arena[y + o.y] &&
 					arena[y + o.y][x + o.x]) !== 0) {
-					return true;
+				return true;
 			}
 		}
 	}
-	return false;		
+	return false;
 }
 
 /**
@@ -84,7 +82,7 @@ function createMatrix(w, h) {
  * Create a piece
  * @param {*} type Create the shape according to the recieving shape
  */
-function createPiece(type){
+function createPiece(type) {
 	if (type === 'T') {
 		return [
 			[1, 1, 1],
@@ -163,14 +161,16 @@ function playerReset() {
 
 /**
  * Draw the screen of the tetris
- */ 
-function draw() {	
+ */
+function draw() {
 
-	// Paint the context
-	context.fillStyle = '#000';
+	// Paint the board
+	context.fillStyle = '#FFF';
+	context.globalAlpha = 0.2;
 	context.fillRect(0, 0, canvas.width, canvas.height);
+    context.globalAlpha = 1.0;
 
-	drawMatrix(arena, {x: 0, y: 0});
+	drawMatrix(arena, { x: 0, y: 0 });
 	drawMatrix(player.matrix, player.pos);
 }
 
@@ -184,11 +184,22 @@ function drawMatrix(matrix, offset) {
 	matrix.forEach((row, y) => {
 		row.forEach((value, x) => {
 			if (value !== 0) {
-				context.fillStyle = colors[value];
-				context.fillRect(x + offset.x,
-								 y + offset.y,
-								 1, 1);
+
+				let gradient = context.createLinearGradient(0, 0, 0, 170);
+				gradient.addColorStop(0, colors[value]);
+				gradient.addColorStop(0.5, 'red');
+				gradient.addColorStop(1, 'black');
+				context.fillStyle = gradient;
+				//context.fillRect(x + offset.x, y + y + offset.y, 20, 20);
+
+				//context.fillStyle = colors[value];
+
+				 context.fillRect(x + offset.x,
+				 	y + offset.y,
+					 1, 1);
+
 			}
+
 		});
 	});
 }
@@ -199,7 +210,7 @@ function drawMatrix(matrix, offset) {
  * @param {*} arena 
  * @param {*} player 
  */
-function merge(arena, player){
+function merge(arena, player) {
 	player.matrix.forEach((row, y) => {
 		row.forEach((value, x) => {
 			if (value !== 0) {
@@ -235,52 +246,52 @@ function playerDrop() {
 // Can't exit from the arena
 function playerMove(dir) {
 	player.pos.x += dir;
-	if (colide(arena, player)){
+	if (colide(arena, player)) {
 		player.pos.x -= dir;
 	}
 }
 
 function playerRotate(dir) {
-	 const pos = player.pos.x;
+	const pos = player.pos.x;
 	let offset = 1;
-	
+
 	rotate(player.matrix, dir);
-	
+
 	// Prevent shape from rotate inside the wall
-	 while(colide(arena, player)) {
-	 	player.pos.x += offset;
-	 	offset = -(offset + (offset > 0 ? 1 : -1));
-	
-	 	if (offset > player.matrix[0].length) {
-	 		player.pos.x = pos;
-	 		return;
-	 	}	
-	 }
+	while (colide(arena, player)) {
+		player.pos.x += offset;
+		offset = -(offset + (offset > 0 ? 1 : -1));
+
+		if (offset > player.matrix[0].length) {
+			player.pos.x = pos;
+			return;
+		}
+	}
 }
 
-function rotate (matrix, dir){
+function rotate(matrix, dir) {
 
 	// Rotate matrix - put the opposite element
-	for(let y =0; y<matrix.length; ++y){
-		for (let x =0; x<y; ++x) {
+	for (let y = 0; y < matrix.length; ++y) {
+		for (let x = 0; x < y; ++x) {
 			[
 				matrix[x][y],
 				matrix[y][x],
 			] = [
-				matrix[y][x],
-				matrix[x][y],
-			];
+					matrix[y][x],
+					matrix[x][y],
+				];
 		}
 	}
 
 	if (dir > 0) {
-		matrix.forEach (row => row.reverse());
+		matrix.forEach(row => row.reverse());
 	}
 	else {
 		matrix.reverse
 	}
 }
-	
+
 let dropCounter = 0;
 
 // Every 1 second (1000 milisecond) drop a piece/shape
@@ -307,7 +318,7 @@ function update(time = 0) {
 /**
  * Update the user score
  */
-function updateScore(){
+function updateScore() {
 	document.getElementById('score').innerText = player.score;
 }
 
@@ -319,13 +330,13 @@ console.log(arena);
 console.table(arena);
 
 const colors = [
-	null, 
+	null,
 	"#FBECC4",
 	"#7FE5E7",
 	"#62BEC3",
 	"#F1CAC2",
 	"#F1CAC2",
-	"#A3C9CF", 
+	"#A3C9CF",
 	"#C69EC0",
 ]
 
@@ -334,7 +345,7 @@ const colors = [
  */
 const player = {
 	// The start point of the board where the piece is falling from
-	pos: {x: 0, y: 0},
+	pos: { x: 0, y: 0 },
 	// The type of the shape
 	matrix: null,
 	score: 0,
@@ -348,7 +359,7 @@ document.addEventListener('keydown', event => { //Listen to keyboard clicks
 	//console.log.length(event);
 
 	// If left arrow on keyboard is pressed, move shape left
-	if (event.keyCode === 37) { 
+	if (event.keyCode === 37) {
 		playerMove(-1);
 	}
 
@@ -357,13 +368,13 @@ document.addEventListener('keydown', event => { //Listen to keyboard clicks
 		playerMove(1);
 	}
 
-		// If down arrow on keyboard is pressed, move shape down
+	// If down arrow on keyboard is pressed, move shape down
 	else if (event.keyCode === 40) {
 
 		playerDrop();
 	}
 
-	else if(event.keyCode === 38) {
+	else if (event.keyCode === 38) {
 		playerRotate(1);
 	}
 });
